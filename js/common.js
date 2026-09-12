@@ -1,5 +1,5 @@
-const STORE_KEY='prompteur-settings-v1';
-const DEFAULTS={text:'',speed:1,fontSize:6,margin:8,color:'#ffffff',countdown:3,mirror:false,invert:false};
+const STORE_KEY='prompteur-settings-v2';
+const DEFAULTS={text:'',speed:1,fontSize:6,margin:8,color:'#ffffff',countdown:0,mirror:false,invert:false};
 function loadSettings(){try{return Object.assign({},DEFAULTS,JSON.parse(localStorage.getItem(STORE_KEY)||'{}'))}catch(e){return Object.assign({},DEFAULTS)}}
 function saveSettings(patch){const next=Object.assign({},loadSettings(),patch);localStorage.setItem(STORE_KEY,JSON.stringify(next));return next}
 function qs(s){return document.querySelector(s)}
