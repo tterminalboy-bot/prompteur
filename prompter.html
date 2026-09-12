@@ -1,1 +1,400 @@
-<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#090c11"><title>Écran prompteur</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="css/style.css"></head><body><div id="setup" class="app"><header class="topbar"><div class="brand"><span class="brand-light"></span>PROMPTEUR <small>ÉCRAN</small></div><div class="spacer"></div><div class="status"><i id="statusDot" class="dot"></i><span id="statusText">Aucune télécommande</span></div><button id="connect" class="ghost">📱 Connecter</button></header><main class="layout"><section class="panel editor-main"><div class="section-title">Éditeur du script</div><p class="hint">Écrivez votre texte, sélectionnez une partie et appliquez une mise en forme comme dans un mini Word.</p><div class="toolbar"><button type="button" data-cmd="bold"><b>Gras</b></button><button type="button" data-cmd="italic"><i>Italique</i></button><button type="button" data-cmd="underline"><u>Souligné</u></button><label class="tool-color">Couleur <input id="editorColor" type="color" value="#ffffff"></label><button type="button" data-cmd="removeFormat">Effacer le style</button></div><div id="text" class="rich-editor" contenteditable="true" spellcheck="true" data-placeholder="Écrivez ou collez votre texte ici…"></div><div class="editor-actions"><button class="ghost" id="clearText">Effacer</button><button class="launch" id="launch">▶ Terminer et lancer le prompteur</button></div><div class="editor-settings"><div class="control-row"><label>Vitesse</label><span class="value" id="speedV">1.0×</span></div><input class="range" id="speed" type="range" min="0.2" max="4" step="0.1"><div class="control-row"><label>Taille</label><span class="value" id="sizeV">6vw</span></div><input class="range" id="size" type="range" min="2" max="12" step=".5"><div class="control-row"><label>Marges</label><span class="value" id="marginV">8%</span></div><input class="range" id="margin" type="range" min="2" max="25" step="1"><div class="control-row"><label>Couleur par défaut</label><input class="color" id="color" type="color"></div></div></section></main></div><div id="stage" class="prompter-stage" hidden><div id="promptViewport"><div id="prompt" class="prompt-text"></div></div><div class="prompt-controls"><button id="back">−</button><button id="play" class="primary">▶</button><button id="forward">+</button><button id="slower">🐢</button><button id="faster">⚡</button><button id="smaller">A−</button><button id="larger">A+</button><button id="restart">↺</button><button id="mirror2">🪞</button><button id="fullscreen">⛶</button><button id="exit">×</button></div></div><div id="launchModal" class="modal-backdrop"><div class="modal"><div class="modal-head"><div class="section-title">Avant de lancer</div><button id="closeLaunch" class="icon-btn">×</button></div><p class="hint">Voulez-vous un compte à rebours avant le démarrage ?</p><div class="count-options"><button data-count="0">Non</button><button data-count="3">3 secondes</button><button data-count="5">5 secondes</button><button data-count="10">10 secondes</button></div></div></div><div id="count" class="countdown" hidden><div><strong id="countNum">3</strong><small>Cliquez pour annuler</small></div></div><div id="modal" class="modal-backdrop"><div class="modal"><div class="modal-head"><div class="section-title">Connecter un téléphone</div><button id="closeModal" class="icon-btn">×</button></div><p class="hint">Le code est généré automatiquement ici. Affichez-le sur l'écran et saisissez-le sur le téléphone.</p><div id="qr" class="qr"></div><div id="code" class="code">----</div><p id="peers" class="hint" style="text-align:center">0 télécommande connectée</p></div></div><div id="toast" class="toast"></div><script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script><script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script><script src="js/common.js"></script><script src="js/prompter.js"></script></body></html>
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Prompteur — Éditeur</title>
+  <style>
+    :root {
+      --bg: #090c11;
+      --panel: #11161e;
+      --panel-2: #0b0f14;
+      --line: #29313d;
+      --text: #f3f5f7;
+      --muted: #929baa;
+      --accent: #f2ad42;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, sans-serif;
+    }
+
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+
+    .app {
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .topbar {
+      width: min(1100px, 100%);
+      margin: 0 auto 20px;
+      min-height: 58px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 16px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--panel);
+    }
+
+    .brand { font-weight: 800; letter-spacing: .08em; }
+    .brand span { color: var(--accent); }
+    .status { margin-left: auto; color: var(--muted); font-size: 13px; }
+
+    .editor {
+      width: min(1100px, 100%);
+      margin: 0 auto;
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--panel);
+    }
+
+    h1 { margin: 0 0 8px; font-size: 28px; }
+    .hint { margin: 0 0 18px; color: var(--muted); line-height: 1.5; }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .toolbar button,
+    .toolbar label,
+    .secondary {
+      min-height: 38px;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: #151b23;
+      color: var(--text);
+    }
+
+    .toolbar label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #text {
+      min-height: 460px;
+      padding: 22px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--panel-2);
+      outline: none;
+      font-size: 20px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+
+    #text:focus { border-color: var(--accent); }
+    #text:empty::before {
+      content: attr(data-placeholder);
+      color: #687180;
+    }
+
+    .bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .launch {
+      border: 0;
+      border-radius: 10px;
+      padding: 14px 18px;
+      background: var(--accent);
+      color: #1a1207;
+      font-weight: 800;
+    }
+
+    .stage {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      overflow: hidden;
+      background: #000;
+      color: #fff;
+    }
+
+    .stage[hidden] { display: none; }
+
+    .viewport {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+
+    #prompt {
+      position: absolute;
+      left: 7%;
+      right: 7%;
+      top: 50%;
+      transform: translateY(calc(-50% - var(--offset, 0px)));
+      transform-origin: center;
+      text-align: center;
+      font-size: clamp(32px, 6vw, 110px);
+      font-weight: 700;
+      line-height: 1.25;
+      word-break: break-word;
+    }
+
+    #prompt p { margin: .45em 0; }
+    #prompt div { margin: .45em 0; }
+
+    .stage-bar {
+      position: absolute;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+      width: min(95vw, 760px);
+      padding: 8px;
+      border: 1px solid #ffffff22;
+      border-radius: 12px;
+      background: #151a20dd;
+      transition: opacity .2s;
+    }
+
+    .stage-bar button {
+      min-width: 44px;
+      height: 42px;
+      border: 1px solid #ffffff22;
+      border-radius: 8px;
+      background: #ffffff12;
+      color: #fff;
+    }
+
+    .stage-bar #play { background: var(--accent); color: #111; font-weight: 800; }
+
+    @media (max-width: 600px) {
+      .app { padding: 10px; }
+      .editor { padding: 15px; }
+      #text { min-height: 55vh; }
+      .bottom { align-items: stretch; flex-direction: column; }
+      .launch { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main id="editorView" class="app">
+    <header class="topbar">
+      <div class="brand">PROMPTEUR <span>ÉCRAN</span></div>
+      <div class="status">Mode éditeur — rien n'est enregistré automatiquement</div>
+    </header>
+
+    <section class="editor">
+      <h1>Écrivez votre script</h1>
+      <p class="hint">Écrivez ou collez votre texte. Sélectionnez une partie du texte pour la mettre en gras, italique, soulignée ou en couleur.</p>
+
+      <div class="toolbar" id="toolbar">
+        <button type="button" data-command="bold"><b>Gras</b></button>
+        <button type="button" data-command="italic"><i>Italique</i></button>
+        <button type="button" data-command="underline"><u>Souligné</u></button>
+        <label>Couleur <input id="textColor" type="color" value="#ffffff"></label>
+        <button type="button" data-command="removeFormat">Effacer le style</button>
+      </div>
+
+      <div id="text" contenteditable="true" spellcheck="true" data-placeholder="Écrivez votre texte ici…"></div>
+
+      <div class="bottom">
+        <button id="clear" class="secondary" type="button">Effacer le texte</button>
+        <button id="launch" class="launch" type="button">▶ Terminer et lancer le prompteur</button>
+      </div>
+    </section>
+  </main>
+
+  <section id="stage" class="stage" hidden>
+    <div class="viewport">
+      <div id="prompt"></div>
+    </div>
+
+    <div class="stage-bar">
+      <button id="back" type="button">−</button>
+      <button id="play" type="button">▶</button>
+      <button id="forward" type="button">+</button>
+      <button id="slower" type="button">🐢</button>
+      <button id="faster" type="button">⚡</button>
+      <button id="restart" type="button">↺</button>
+      <button id="fullscreen" type="button">⛶</button>
+      <button id="exit" type="button">×</button>
+    </div>
+  </section>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const editorView = document.getElementById('editorView');
+      const text = document.getElementById('text');
+      const stage = document.getElementById('stage');
+      const prompt = document.getElementById('prompt');
+      const launch = document.getElementById('launch');
+      const clear = document.getElementById('clear');
+      const playButton = document.getElementById('play');
+      const color = document.getElementById('textColor');
+
+      let running = false;
+      let offset = 0;
+      let speed = 1;
+      let animationFrame = null;
+      let lastTime = 0;
+
+      function render() {
+        prompt.innerHTML = text.innerHTML.trim();
+        prompt.style.setProperty('--offset', `${offset}px`);
+      }
+
+      function setRunning(value) {
+        running = value;
+        playButton.textContent = running ? 'Ⅱ' : '▶';
+
+        if (!running) {
+          if (animationFrame !== null) {
+            cancelAnimationFrame(animationFrame);
+            animationFrame = null;
+          }
+          return;
+        }
+
+        lastTime = performance.now();
+        animationFrame = requestAnimationFrame(tick);
+      }
+
+      function tick(now) {
+        if (!running) return;
+
+        const delta = Math.min(now - lastTime, 80);
+        lastTime = now;
+        offset += delta * 0.035 * speed;
+        prompt.style.setProperty('--offset', `${offset}px`);
+        animationFrame = requestAnimationFrame(tick);
+      }
+
+      function openStage() {
+        if (!text.innerText.trim()) {
+          alert('Écrivez d’abord votre texte.');
+          text.focus();
+          return;
+        }
+
+        setRunning(false);
+        offset = 0;
+        render();
+        editorView.hidden = true;
+        stage.hidden = false;
+
+        // Le premier lancement est fait directement depuis le clic utilisateur.
+        // Cela évite que le navigateur bloque le plein écran.
+        if (stage.requestFullscreen) {
+          stage.requestFullscreen().catch(() => {});
+        }
+
+        setRunning(true);
+      }
+
+      launch.addEventListener('click', openStage);
+
+      clear.addEventListener('click', () => {
+        text.innerHTML = '';
+        text.focus();
+      });
+
+      document.querySelectorAll('[data-command]').forEach((button) => {
+        button.addEventListener('mousedown', (event) => event.preventDefault());
+        button.addEventListener('click', () => {
+          text.focus();
+          document.execCommand(button.dataset.command, false, null);
+          render();
+        });
+      });
+
+      color.addEventListener('input', () => {
+        text.focus();
+        document.execCommand('foreColor', false, color.value);
+        render();
+      });
+
+      playButton.addEventListener('click', () => setRunning(!running));
+
+      document.getElementById('back').addEventListener('click', () => {
+        offset = Math.max(0, offset - 180);
+        render();
+      });
+
+      document.getElementById('forward').addEventListener('click', () => {
+        offset += 180;
+        render();
+      });
+
+      document.getElementById('slower').addEventListener('click', () => {
+        speed = Math.max(0.2, speed - 0.1);
+      });
+
+      document.getElementById('faster').addEventListener('click', () => {
+        speed = Math.min(4, speed + 0.1);
+      });
+
+      document.getElementById('restart').addEventListener('click', () => {
+        offset = 0;
+        render();
+        setRunning(false);
+      });
+
+      document.getElementById('fullscreen').addEventListener('click', () => {
+        if (!document.fullscreenElement && stage.requestFullscreen) {
+          stage.requestFullscreen().catch(() => {});
+        }
+      });
+
+      document.getElementById('exit').addEventListener('click', () => {
+        setRunning(false);
+        if (document.fullscreenElement) {
+          document.exitFullscreen().catch(() => {});
+        }
+        stage.hidden = true;
+        editorView.hidden = false;
+        text.focus();
+      });
+
+      window.addEventListener('keydown', (event) => {
+        if (stage.hidden) return;
+
+        if (event.key === ' ') {
+          event.preventDefault();
+          setRunning(!running);
+        } else if (event.key === 'ArrowLeft') {
+          offset = Math.max(0, offset - 180);
+          render();
+        } else if (event.key === 'ArrowRight') {
+          offset += 180;
+          render();
+        } else if (event.key.toLowerCase() === 'r') {
+          offset = 0;
+          render();
+          setRunning(false);
+        } else if (event.key === 'Escape') {
+          setRunning(false);
+        }
+      });
+
+      render();
+    })();
+  </script>
+</body>
+</html>
