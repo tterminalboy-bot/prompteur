@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Prompteur — écran</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="glass-sheen"></div>
+
+<!-- ======== ÉCRAN DE CONFIGURATION ======== -->
+<main class="setup" id="setup-screen">
+  <div class="setup-panel single">
+    <div class="setup-col">
+      <h2>Ton texte</h2>
+      <p class="hint">Colle ou écris le texte à faire défiler. Tu pourras tout ajuster une fois lancé — au clavier, à la souris, ou depuis ton téléphone.</p>
+      <textarea id="script-input" placeholder="Colle ton texte ici…">Bienvenue sur votre prompteur.
+
+Collez votre texte ici, puis cliquez sur « Lancer le prompteur ». Une fois à l'écran, bougez la souris pour afficher les commandes en bas, ou connectez votre téléphone comme télécommande.</textarea>
+
+      <div class="setup-actions">
+        <button class="btn btn-primary btn-lg" id="start-btn">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M8 5v14l11-7z"/></svg>
+          Lancer le prompteur
+        </button>
+        <button class="btn btn-ghost" id="mirror-toggle-setup" type="button">Miroir : désactivé</button>
+      </div>
+
+      <div class="setup-secondary">
+        <button class="pill-btn" id="open-connect-btn" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
+          Connecter un téléphone
+          <span class="status-dot-mini" id="mini-status-dot"></span>
+        </button>
+        <button class="pill-btn" id="open-shortcuts-btn" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M6 9h.01M10 9h.01M14 9h.01M18 9h.01M6 13h.01M18 13h.01M9 13h6"/></svg>
+          Raccourcis clavier
+        </button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ======== MODALE : connecter un téléphone ======== -->
+<div class="modal-overlay" id="connect-modal">
+  <div class="modal-card">
+    <button class="modal-close" id="close-connect-modal" aria-label="Fermer">✕</button>
+    <h3>Connecter la télécommande</h3>
+    <p class="hint">Scanne ce QR code avec ton téléphone, ou ouvre <strong>remote.html</strong> et entre le code.</p>
+    <div class="connect-box">
+      <div class="status-pill" id="status-pill"><span class="status-dot"></span><span id="status-text">En attente…</span></div>
+      <div class="code-display" id="code-display">····</div>
+      <div id="qr-code"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== MODALE : raccourcis clavier ======== -->
+<div class="modal-overlay" id="shortcuts-modal">
+  <div class="modal-card">
+    <button class="modal-close" id="close-shortcuts-modal" aria-label="Fermer">✕</button>
+    <h3>Raccourcis clavier</h3>
+    <p class="hint">Clique sur une touche pour la modifier, puis appuie sur la nouvelle touche. Échap pour annuler.</p>
+    <div class="keymap-list" id="keymap-list"></div>
+    <button class="btn btn-ghost" id="reset-keymap-btn" type="button">Réinitialiser les touches par défaut</button>
+  </div>
+</div>
+
+<!-- ======== TUTO première visite ======== -->
+<div class="tuto-tip" id="tuto-tip">
+  <p>👋 Bouge la souris pour afficher les commandes en bas de l'écran. Pilote tout au clavier — touches personnalisables dans les réglages — ou connecte ton téléphone comme télécommande.</p>
+  <button class="btn btn-primary" id="tuto-dismiss" type="button">Compris</button>
+</div>
+
+<!-- ======== SCÈNE DE LECTURE (plein écran) ======== -->
+<div class="prompter-stage" id="stage">
+  <div class="prompter-centerline"></div>
+  <div class="prompter-viewport">
+    <div class="prompter-track" id="track">
+      <div class="prompter-text" id="prompter-text"></div>
+    </div>
+  </div>
+
+  <div class="stage-bar" id="stage-bar">
+    <button class="bar-btn" id="bar-connect" title="Connecter un téléphone">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
+      <span class="status-dot-mini" id="mini-status-dot-bar"></span>
+    </button>
+    <button class="bar-btn" id="bar-shortcuts" title="Raccourcis clavier">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M6 9h.01M10 9h.01M14 9h.01M18 9h.01M6 13h.01M18 13h.01M9 13h6"/></svg>
+    </button>
+
+    <div class="bar-spacer"></div>
+
+    <button class="bar-btn" id="bar-nudge-back" title="Reculer">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11 7L4 12l7 5V7zM20 7l-7 5 7 5V7z"/></svg>
+    </button>
+    <button class="bar-btn" id="bar-speed-down" title="Ralentir">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"/></svg>
+    </button>
+    <button class="bar-play" id="bar-play" title="Lecture / Pause">
+      <svg id="bar-play-icon" viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M8 5v14l11-7z"/></svg>
+      <svg id="bar-pause-icon" viewBox="0 0 24 24" fill="currentColor" width="22" height="22" style="display:none"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+    </button>
+    <button class="bar-btn" id="bar-speed-up" title="Accélérer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M12 5v14"/></svg>
+    </button>
+    <button class="bar-btn" id="bar-nudge-forward" title="Avancer">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 7l7 5-7 5V7zM4 7l7 5-7 5V7z"/></svg>
+    </button>
+
+    <span class="bar-readout" id="bar-readout">1.0×</span>
+
+    <div class="bar-spacer"></div>
+
+    <button class="bar-btn bar-text" id="bar-font-down" title="Réduire le texte">A−</button>
+    <button class="bar-btn bar-text" id="bar-font-up" title="Agrandir le texte">A+</button>
+
+    <div class="bar-spacer"></div>
+
+    <button class="bar-btn" id="bar-restart" title="Revenir au début">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/></svg>
+    </button>
+    <button class="bar-btn" id="bar-mirror" title="Miroir">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M7 8l-4 4 4 4M17 8l4 4-4 4"/></svg>
+    </button>
+    <button class="bar-btn" id="bar-contrast" title="Noir sur blanc / blanc sur noir">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 000 20V2z"/><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+    </button>
+    <button class="bar-btn" id="bar-fullscreen" title="Plein écran">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 00-2 2v3M16 3h3a2 2 0 012 2v3M8 21H5a2 2 0 01-2-2v-3M16 21h3a2 2 0 002-2v-3"/></svg>
+    </button>
+    <button class="bar-btn bar-exit" id="bar-exit" title="Quitter">✕</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="js/common.js"></script>
+<script src="js/prompter.js"></script>
+</body>
+</html>
