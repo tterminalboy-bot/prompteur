@@ -10,7 +10,6 @@ function syncState(s){
   if(s.bands!==undefined)qs('#remoteBands').classList.toggle('active',!!s.bands);
   if(s.arrows!==undefined)qs('#remoteArrows').classList.toggle('active',!!s.arrows);
   if(s.lineEnabled!==undefined)qs('#remoteLine').classList.toggle('active',!!s.lineEnabled);
-  if(s.mirror!==undefined||s.invert!==undefined){const flip=!!(s.mirror||s.invert);qs('#mirror').classList.toggle('active',flip);qs('#invert').classList.toggle('active',flip)}
   if(s.bandHeight!==undefined){qs('#bandHeight').value=s.bandHeight;qs('#bandHeightValue').textContent=s.bandHeight+'%'}
   if(s.bandBlur!==undefined){qs('#bandBlur').value=s.bandBlur;qs('#bandBlurValue').textContent=s.bandBlur+'%'}
   if(s.arrowSize!==undefined){qs('#arrowSize').value=s.arrowSize;qs('#arrowSizeValue').textContent=s.arrowSize+'px'}
@@ -32,9 +31,9 @@ function connect(){
 }
 function send(a){if(conn?.open)conn.send({type:'command',action:a});else toast('Télécommande non connectée')}
 function setting(key,value){if(conn?.open)conn.send({type:'setting',key,value});else toast('Télécommande non connectée')}
-qs('#backHome').onclick=()=>{clearTimeout(retryTimer);resetConnection();location.href='index.html'};
-qs('#connectBtn').onclick=connect;input.addEventListener('input',()=>{input.value=input.value.replace(/\D/g,'').slice(0,4)});input.addEventListener('keydown',e=>{if(e.key==='Enter')connect()});
-['play','back','forward','slower','faster','smaller','larger','restart','mirror','invert'].forEach(id=>qs('#'+id).onclick=()=>send(id));
+qs('#connectBtn').onclick=connect;
+input.addEventListener('input',()=>{input.value=input.value.replace(/\D/g,'').slice(0,4)});input.addEventListener('keydown',e=>{if(e.key==='Enter')connect()});
+['play','back','forward','slower','faster','smaller','larger','restart'].forEach(id=>qs('#'+id).onclick=()=>send(id));
 qs('#remoteBands').onclick=()=>setting('bands',!qs('#remoteBands').classList.contains('active'));
 qs('#remoteArrows').onclick=()=>setting('arrows',!qs('#remoteArrows').classList.contains('active'));
 qs('#remoteLine').onclick=()=>setting('lineEnabled',!qs('#remoteLine').classList.contains('active'));
