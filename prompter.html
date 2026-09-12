@@ -1,146 +1,60 @@
 <!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Prompteur — Éditeur</title>
-  <style>
-    :root{--bg:#090c11;--panel:#11161e;--panel2:#0b0f14;--line:#29313d;--text:#f3f5f7;--muted:#929baa;--accent:#f2ad42}
-    *{box-sizing:border-box}
-    html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Arial,sans-serif}
-    button,input{font:inherit}button{cursor:pointer}
-    .app{min-height:100vh;padding:20px}
-    .topbar,.editor{width:min(1100px,100%);margin:0 auto}
-    .topbar{min-height:58px;margin-bottom:20px;display:flex;align-items:center;gap:16px;padding:12px 16px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
-    .brand{font-weight:800;letter-spacing:.08em}.brand span{color:var(--accent)}.status{margin-left:auto;color:var(--muted);font-size:13px}
-    .editor{padding:24px;border:1px solid var(--line);border-radius:18px;background:var(--panel)}
-    h1{margin:0 0 8px;font-size:28px}.hint{margin:0 0 18px;color:var(--muted);line-height:1.5}
-    .toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}.toolbar button,.toolbar label,.secondary{min-height:38px;padding:8px 12px;border:1px solid var(--line);border-radius:9px;background:#151b23;color:var(--text)}.toolbar label{display:inline-flex;align-items:center;gap:8px}
-    #text{min-height:460px;padding:22px;overflow:auto;border:1px solid var(--line);border-radius:12px;background:var(--panel2);outline:none;font-size:20px;line-height:1.6;white-space:pre-wrap}#text:focus{border-color:var(--accent)}#text:empty:before{content:attr(data-placeholder);color:#687180}
-    .bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px}.launch{border:0;border-radius:10px;padding:14px 18px;background:var(--accent);color:#1a1207;font-weight:800}
-    .stage{position:fixed;inset:0;z-index:100;overflow:hidden;background:#000;color:#fff}.stage[hidden]{display:none}.viewport{position:absolute;inset:0;overflow:hidden}
-    #prompt{position:absolute;left:7%;right:7%;top:50%;transform:translateY(calc(-50% - var(--offset,0px)));text-align:center;font-size:clamp(32px,6vw,110px);font-weight:700;line-height:1.25;word-break:break-word}#prompt p,#prompt div{margin:.45em 0}
-    .stage-bar{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);display:flex;flex-wrap:wrap;justify-content:center;gap:6px;width:min(95vw,760px);padding:8px;border:1px solid #ffffff22;border-radius:12px;background:#151a20dd}.stage-bar button{min-width:44px;height:42px;border:1px solid #ffffff22;border-radius:8px;background:#ffffff12;color:#fff}.stage-bar #play{background:var(--accent);color:#111;font-weight:800}
-    @media(max-width:600px){.app{padding:10px}.editor{padding:15px}#text{min-height:55vh}.bottom{align-items:stretch;flex-direction:column}.launch{width:100%}}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Prompteur — Écran</title>
+<style>
+:root{--bg:#090c11;--panel:#11161e;--panel2:#0b0f14;--line:#29313d;--text:#f3f5f7;--muted:#929baa;--accent:#f2ad42}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Arial,sans-serif}button,input,select{font:inherit}button{cursor:pointer}
+.app{min-height:100vh;padding:20px}.topbar,.editor{width:min(1100px,100%);margin:auto}.topbar{min-height:58px;margin-bottom:20px;display:flex;align-items:center;gap:12px;padding:12px 16px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}.brand{font-weight:800;letter-spacing:.08em}.brand span{color:var(--accent)}.status{margin-left:auto;color:var(--muted);font-size:13px}
+.editor{padding:24px;border:1px solid var(--line);border-radius:18px;background:var(--panel)}h1{margin:0 0 8px;font-size:28px}.hint{margin:0 0 18px;color:var(--muted);line-height:1.5}.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}.toolbar button,.toolbar label,.secondary{min-height:38px;padding:8px 12px;border:1px solid var(--line);border-radius:9px;background:#151b23;color:var(--text)}.toolbar label{display:inline-flex;align-items:center;gap:8px}
+#text{min-height:460px;padding:22px;overflow:auto;border:1px solid var(--line);border-radius:12px;background:var(--panel2);outline:none;font-size:20px;line-height:1.6;white-space:pre-wrap}#text:focus{border-color:var(--accent)}#text:empty:before{content:attr(data-placeholder);color:#687180}.bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px}.launch{border:0;border-radius:10px;padding:14px 18px;background:var(--accent);color:#1a1207;font-weight:800}
+.modal{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:20px;background:#000b}.modal[hidden]{display:none}.modal-card{width:min(560px,100%);padding:26px;border:1px solid var(--line);border-radius:18px;background:var(--panel);box-shadow:0 20px 80px #000}.modal-card h2{margin:0 0 8px}.modal-card p{color:var(--muted);line-height:1.5}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:18px 0}.grid button,.field{border:1px solid var(--line);border-radius:10px;background:#151b23;color:var(--text);padding:11px}.grid button.active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}.field{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:10px 0}.field input,.field select{max-width:160px;background:#0c1117;color:var(--text);border:1px solid var(--line);border-radius:7px;padding:7px}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}.primary{border:0;border-radius:9px;padding:11px 16px;background:var(--accent);font-weight:800}.ghost{border:1px solid var(--line);border-radius:9px;padding:11px 16px;background:#151b23;color:var(--text)}
+.connection{display:grid;grid-template-columns:150px 1fr;gap:20px;align-items:center}.qr{width:150px;height:150px;padding:8px;background:#fff;border-radius:10px}.code{font-size:42px;letter-spacing:.18em;font-weight:800;color:var(--accent)}
+.stage{position:fixed;inset:0;z-index:100;overflow:hidden;background:#000;color:#fff}.stage[hidden]{display:none}.viewport{position:absolute;inset:0;overflow:hidden}.reading-zone{position:absolute;left:0;right:0;top:50%;height:26%;transform:translateY(-50%);pointer-events:none;border-top:2px solid #f2ad4288;border-bottom:2px solid #f2ad4288;z-index:3}.mask{position:absolute;left:0;right:0;background:#000;z-index:2;pointer-events:none}.mask.top{top:0;height:37%}.mask.bottom{bottom:0;height:37%}.arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:4;color:var(--accent);font-size:42px;font-weight:900;line-height:1}.arrow.left{left:2%}.arrow.right{right:2%}
+#prompt{position:absolute;left:8%;right:8%;top:50%;transform:translateY(calc(-50% - var(--offset,0px)));text-align:center;font-size:clamp(32px,6vw,110px);font-weight:700;line-height:1.25;word-break:break-word;transform-origin:center}#prompt p,#prompt div{margin:.45em 0}
+.stage-bar{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);display:flex;flex-wrap:wrap;justify-content:center;gap:6px;width:min(96vw,900px);padding:8px;border:1px solid #ffffff22;border-radius:12px;background:#151a20dd;z-index:10}.stage-bar button{min-width:44px;height:42px;border:1px solid #ffffff22;border-radius:8px;background:#ffffff12;color:#fff}.stage-bar #play{background:var(--accent);color:#111;font-weight:800}
+.countdown{position:fixed;inset:0;z-index:150;display:grid;place-items:center;background:#000;color:#fff;font-size:min(24vw,220px);font-weight:900}.countdown[hidden]{display:none}.countdown small{display:block;font-size:18px;color:#aaa;text-align:center;margin-top:-30px}
+@media(max-width:600px){.app{padding:10px}.editor{padding:15px}#text{min-height:55vh}.bottom{align-items:stretch;flex-direction:column}.launch{width:100%}.connection{grid-template-columns:1fr}.qr{margin:auto}.grid{grid-template-columns:repeat(2,1fr)}}
+</style>
 </head>
 <body>
-  <main id="editorView" class="app">
-    <header class="topbar"><div class="brand">PROMPTEUR <span>ÉCRAN</span></div><div class="status">Éditeur — rien n'est enregistré</div></header>
-    <section class="editor">
-      <h1>Écrivez votre script</h1>
-      <p class="hint">Écrivez ou collez votre texte. Sélectionnez une partie pour la mettre en gras, italique, soulignée ou en couleur.</p>
-      <div class="toolbar">
-        <button type="button" data-command="bold"><b>Gras</b></button>
-        <button type="button" data-command="italic"><i>Italique</i></button>
-        <button type="button" data-command="underline"><u>Souligné</u></button>
-        <label>Couleur <input id="textColor" type="color" value="#ffffff"></label>
-        <button type="button" data-command="removeFormat">Effacer le style</button>
-      </div>
-      <div id="text" contenteditable="true" spellcheck="true" data-placeholder="Écrivez votre texte ici…"></div>
-      <div class="bottom"><button id="clear" class="secondary" type="button">Effacer le texte</button><button id="launch" class="launch" type="button">▶ Terminer et lancer le prompteur</button></div>
-    </section>
-  </main>
+<main id="editorView" class="app">
+<header class="topbar"><div class="brand">PROMPTEUR <span>ÉCRAN</span></div><div class="status" id="status">Télécommande : non connectée</div><button class="ghost" id="connectPhone">📱 Connecter un téléphone</button></header>
+<section class="editor"><h1>Écrivez votre script</h1><p class="hint">Écrivez ou collez votre texte. Sélectionnez une partie pour la mettre en gras, italique, soulignée ou en couleur.</p>
+<div class="toolbar"><button type="button" data-command="bold"><b>Gras</b></button><button type="button" data-command="italic"><i>Italique</i></button><button type="button" data-command="underline"><u>Souligné</u></button><label>Couleur <input id="textColor" type="color" value="#ffffff"></label><button type="button" data-command="removeFormat">Effacer le style</button></div>
+<div id="text" contenteditable="true" spellcheck="true" data-placeholder="Écrivez votre texte ici…"></div>
+<div class="bottom"><button id="clear" class="secondary" type="button">Effacer le texte</button><button id="launch" class="launch" type="button">▶ Terminer et préparer le prompteur</button></div></section></main>
 
-  <section id="stage" class="stage" hidden>
-    <div class="viewport"><div id="prompt"></div></div>
-    <div class="stage-bar">
-      <button id="back" type="button">−</button><button id="play" type="button">▶</button><button id="forward" type="button">+</button><button id="slower" type="button">🐢</button><button id="faster" type="button">⚡</button><button id="restart" type="button">↺</button><button id="fullscreen" type="button">⛶</button><button id="exit" type="button">×</button>
-    </div>
-  </section>
+<div id="settingsModal" class="modal" hidden><div class="modal-card"><h2>Préparation du prompteur</h2><p>Choisissez les réglages avant le défilement. Le compte à rebours commencera seulement après confirmation.</p><label class="field">Vitesse <input id="speedInput" type="range" min="0.2" max="4" step="0.1" value="1"><output id="speedValue">1,0×</output></label><label class="field">Taille du texte <input id="fontInput" type="range" min="3" max="12" step="0.5" value="6"><output id="fontValue">6vw</output></label><label class="field">Compte à rebours <select id="countdownInput"><option value="0">Désactivé</option><option value="3" selected>3 secondes</option><option value="5">5 secondes</option><option value="10">10 secondes</option></select></label><label class="field">Taille des flèches <input id="arrowInput" type="range" min="20" max="120" step="5" value="42"><output id="arrowValue">42px</output></label><label class="field">Miroir <input id="mirrorInput" type="checkbox"></label><label class="field">Inversé (haut/bas) <input id="invertInput" type="checkbox"></label><div class="modal-actions"><button id="cancelSettings" class="ghost">Annuler</button><button id="prepareLaunch" class="primary">▶ Lancer</button></div></div></div>
 
-  <script>
-    (()=>{
-      'use strict';
-      const editor=document.getElementById('editorView');
-      const text=document.getElementById('text');
-      const stage=document.getElementById('stage');
-      const prompt=document.getElementById('prompt');
-      const playButton=document.getElementById('play');
-      let running=false;
-      let offset=0;
-      let speed=1;
-      let frame=null;
-      let last=0;
+<div id="phoneModal" class="modal" hidden><div class="modal-card"><h2>Connecter un téléphone</h2><div class="connection"><div id="qr" class="qr"></div><div><p>Scannez le QR code ou ouvrez <b>remote.html</b> puis entrez ce code :</p><div class="code" id="code">----</div><p id="connectionHelp">En attente du téléphone…</p></div></div><div class="modal-actions"><button id="closePhone" class="ghost">Fermer</button><button id="newCode" class="primary">Nouveau code</button></div></div></div>
 
-      function render(){
-        prompt.innerHTML=text.innerHTML.trim();
-        prompt.style.setProperty('--offset',`${offset}px`);
-      }
+<section id="stage" class="stage" hidden><div class="viewport"><div class="mask top"></div><div class="mask bottom"></div><div class="reading-zone"></div><div class="arrow left">›</div><div class="arrow right">‹</div><div id="prompt"></div></div><div class="stage-bar"><button id="back">−</button><button id="play">▶</button><button id="forward">+</button><button id="slower">🐢</button><button id="faster">⚡</button><button id="restart">↺</button><button id="mirror">🪞</button><button id="invert">↕</button><button id="fullscreen">⛶</button><button id="exit">×</button></div></section>
+<div id="countdown" class="countdown" hidden><div><div id="countNumber">3</div><small>Préparez-vous…</small></div></div>
 
-      function setRunning(value){
-        running=value;
-        playButton.textContent=running?'Ⅱ':'▶';
-        if(frame!==null){cancelAnimationFrame(frame);frame=null;}
-        if(running){last=performance.now();frame=requestAnimationFrame(tick);}
-      }
-
-      function tick(now){
-        if(!running)return;
-        const delta=Math.min(now-last,80);
-        last=now;
-        offset+=delta*0.035*speed;
-        prompt.style.setProperty('--offset',`${offset}px`);
-        frame=requestAnimationFrame(tick);
-      }
-
-      function launchPrompter(){
-        if(!text.innerText.trim()){
-          alert('Écrivez d’abord votre texte.');
-          text.focus();
-          return;
-        }
-        setRunning(false);
-        offset=0;
-        render();
-        editor.hidden=true;
-        stage.hidden=false;
-        if(stage.requestFullscreen)stage.requestFullscreen().catch(()=>{});
-        setRunning(true);
-      }
-
-      document.getElementById('launch').addEventListener('click',launchPrompter);
-      document.getElementById('clear').addEventListener('click',()=>{text.innerHTML='';text.focus();});
-
-      document.querySelectorAll('[data-command]').forEach(button=>{
-        button.addEventListener('mousedown',event=>event.preventDefault());
-        button.addEventListener('click',()=>{
-          document.execCommand(button.dataset.command,false,null);
-          text.focus();
-        });
-      });
-
-      document.getElementById('textColor').addEventListener('input',event=>{
-        text.focus();
-        document.execCommand('foreColor',false,event.target.value);
-      });
-
-      document.getElementById('play').addEventListener('click',()=>setRunning(!running));
-      document.getElementById('back').addEventListener('click',()=>{offset=Math.max(0,offset-180);render();});
-      document.getElementById('forward').addEventListener('click',()=>{offset+=180;render();});
-      document.getElementById('slower').addEventListener('click',()=>{speed=Math.max(.2,speed-.1);});
-      document.getElementById('faster').addEventListener('click',()=>{speed=Math.min(4,speed+.1);});
-      document.getElementById('restart').addEventListener('click',()=>{offset=0;render();setRunning(false);});
-      document.getElementById('fullscreen').addEventListener('click',()=>{if(!document.fullscreenElement&&stage.requestFullscreen)stage.requestFullscreen().catch(()=>{});});
-      document.getElementById('exit').addEventListener('click',()=>{
-        setRunning(false);
-        if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});
-        stage.hidden=true;
-        editor.hidden=false;
-        text.focus();
-      });
-
-      window.addEventListener('keydown',event=>{
-        if(stage.hidden)return;
-        if(event.key===' '){event.preventDefault();setRunning(!running);}
-        else if(event.key==='ArrowLeft'){offset=Math.max(0,offset-180);render();}
-        else if(event.key==='ArrowRight'){offset+=180;render();}
-        else if(event.key.toLowerCase()==='r'){offset=0;render();setRunning(false);}
-        else if(event.key==='Escape'){setRunning(false);}
-      });
-
-      render();
-    })();
-  </script>
-</body>
-</html>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script><script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script>
+(()=>{'use strict';
+const editor=document.getElementById('editorView'),text=document.getElementById('text'),stage=document.getElementById('stage'),prompt=document.getElementById('prompt'),status=document.getElementById('status');
+let running=false,offset=0,speed=1,fontSize=6,mirror=false,invert=false,frame=null,last=0,peer=null,code='',connections=new Set(),countdownTimer=null;
+const $=id=>document.getElementById(id);
+function render(){prompt.innerHTML=text.innerHTML.trim();prompt.style.setProperty('--offset',offset+'px');prompt.style.fontSize=`clamp(32px,${fontSize}vw,110px)`;prompt.style.transform=`translateY(calc(-50% - ${offset}px)) ${mirror?'scaleX(-1)':''} ${invert?'scaleY(-1)':''}`;document.querySelectorAll('.arrow').forEach(a=>a.style.fontSize=$('arrowInput').value+'px')}
+function broadcast(msg){connections.forEach(c=>{if(c.open)c.send(msg)})}
+function state(){return {running,offset,speed,fontSize,mirror,invert}}
+function setRunning(v){running=v; $('play').textContent=v?'Ⅱ':'▶';if(frame!==null){cancelAnimationFrame(frame);frame=null}if(v){last=performance.now();frame=requestAnimationFrame(tick)}broadcast({type:'state',state:state()})}
+function tick(now){if(!running)return;const delta=Math.min(now-last,80);last=now;offset+=delta*.035*speed;prompt.style.setProperty('--offset',offset+'px');frame=requestAnimationFrame(tick)}
+function applyAction(a){if(a==='play')setRunning(!running);else if(a==='back'){offset=Math.max(0,offset-180);render()}else if(a==='forward'){offset+=180;render()}else if(a==='slower'){speed=Math.max(.2,speed-.1)}else if(a==='faster'){speed=Math.min(4,speed+.1)}else if(a==='smaller'){fontSize=Math.max(3,fontSize-.5);render()}else if(a==='larger'){fontSize=Math.min(12,fontSize+.5);render()}else if(a==='restart'){offset=0;setRunning(false);render()}else if(a==='mirror'){mirror=!mirror;render()}else if(a==='invert'){invert=!invert;render()}else if(a==='fullscreen'){stage.requestFullscreen?.().catch(()=>{})}broadcast({type:'state',state:state()})}
+function newCode(){if(peer){try{peer.destroy()}catch{}}connections.clear();code=String(Math.floor(1000+Math.random()*9000));$('code').textContent=code;$('connectionHelp').textContent='En attente du téléphone…';$('qr').innerHTML='';new QRCode($('qr'),{text:new URL('remote.html?code='+code,location.href).href,width:134,height:134});peer=new Peer('pt-'+code,{debug:0});peer.on('open',()=>{status.textContent='Télécommande : prête — code '+code});peer.on('connection',c=>{connections.add(c);status.textContent='Télécommande : connectée';$('connectionHelp').textContent='Téléphone connecté. Vous pouvez utiliser la télécommande.';c.on('open',()=>c.send({type:'state',state:state()}));c.on('data',m=>{if(m?.type==='command')applyAction(m.action)});c.on('close',()=>{connections.delete(c);if(!connections.size)status.textContent='Télécommande : en attente'});c.on('error',()=>connections.delete(c))});peer.on('error',e=>{if(e.type==='unavailable-id')newCode()})}
+function startCountdown(seconds){$('countdown').hidden=false;if(seconds<=0){$('countdown').hidden=true;setRunning(true);return}let n=seconds;$('countNumber').textContent=n;clearInterval(countdownTimer);countdownTimer=setInterval(()=>{n--;if(n<=0){clearInterval(countdownTimer);$('countdown').hidden=true;setRunning(true)}else $('countNumber').textContent=n},1000)}
+function launch(){if(!text.innerText.trim()){alert('Écrivez d’abord votre texte.');text.focus();return}speed=parseFloat($('speedInput').value);fontSize=parseFloat($('fontInput').value);mirror=$('mirrorInput').checked;invert=$('invertInput').checked;offset=0;render();$('settingsModal').hidden=true;editor.hidden=true;stage.hidden=false;stage.requestFullscreen?.().catch(()=>{});const seconds=parseInt($('countdownInput').value,10);if(seconds>0){if(confirm('Attention : le compte à rebours va commencer. Appuyez sur OK pour démarrer le compte à rebours.'))startCountdown(seconds);else {stage.hidden=true;editor.hidden=false}}else setRunning(true)}
+$('launch').onclick=()=>{$('settingsModal').hidden=false};$('prepareLaunch').onclick=launch;$('cancelSettings').onclick=()=>{$('settingsModal').hidden=true};$('connectPhone').onclick=()=>{$('phoneModal').hidden=false;if(!peer)newCode()};$('closePhone').onclick=()=>{$('phoneModal').hidden=true};$('newCode').onclick=newCode;
+$('clear').onclick=()=>{text.innerHTML='';text.focus()};document.querySelectorAll('[data-command]').forEach(b=>{b.addEventListener('mousedown',e=>e.preventDefault());b.onclick=()=>{document.execCommand(b.dataset.command,false,null);text.focus()}});$('textColor').oninput=e=>{text.focus();document.execCommand('foreColor',false,e.target.value)};
+$('play').onclick=()=>setRunning(!running);$('back').onclick=()=>applyAction('back');$('forward').onclick=()=>applyAction('forward');$('slower').onclick=()=>applyAction('slower');$('faster').onclick=()=>applyAction('faster');$('restart').onclick=()=>applyAction('restart');$('mirror').onclick=()=>applyAction('mirror');$('invert').onclick=()=>applyAction('invert');$('fullscreen').onclick=()=>stage.requestFullscreen?.().catch(()=>{});$('exit').onclick=()=>{setRunning(false);clearInterval(countdownTimer);if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});stage.hidden=true;editor.hidden=false;text.focus()};
+$('speedInput').oninput=e=>$('speedValue').textContent=parseFloat(e.target.value).toFixed(1).replace('.',',')+'×';$('fontInput').oninput=e=>$('fontValue').textContent=e.target.value+'vw';$('arrowInput').oninput=e=>$('arrowValue').textContent=e.target.value+'px';
+text.addEventListener('wheel',e=>{if(stage.hidden)return;e.preventDefault();offset=Math.max(0,offset+e.deltaY);render()},{passive:false});
+window.addEventListener('keydown',e=>{if(stage.hidden)return;if(e.key===' '){e.preventDefault();setRunning(!running)}else if(e.key==='ArrowLeft')applyAction('back');else if(e.key==='ArrowRight')applyAction('forward');else if(e.key.toLowerCase()==='r')applyAction('restart');else if(e.key==='Escape')setRunning(false)});
+render();
+})();
+</script></body></html>
