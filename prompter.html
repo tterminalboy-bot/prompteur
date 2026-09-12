@@ -5,392 +5,138 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Prompteur — Éditeur</title>
   <style>
-    :root {
-      --bg: #090c11;
-      --panel: #11161e;
-      --panel-2: #0b0f14;
-      --line: #29313d;
-      --text: #f3f5f7;
-      --muted: #929baa;
-      --accent: #f2ad42;
-    }
-
-    * { box-sizing: border-box; }
-    html, body { margin: 0; min-height: 100%; }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: Arial, sans-serif;
-    }
-
-    button, input { font: inherit; }
-    button { cursor: pointer; }
-
-    .app {
-      min-height: 100vh;
-      padding: 20px;
-    }
-
-    .topbar {
-      width: min(1100px, 100%);
-      margin: 0 auto 20px;
-      min-height: 58px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      padding: 12px 16px;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: var(--panel);
-    }
-
-    .brand { font-weight: 800; letter-spacing: .08em; }
-    .brand span { color: var(--accent); }
-    .status { margin-left: auto; color: var(--muted); font-size: 13px; }
-
-    .editor {
-      width: min(1100px, 100%);
-      margin: 0 auto;
-      padding: 24px;
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      background: var(--panel);
-    }
-
-    h1 { margin: 0 0 8px; font-size: 28px; }
-    .hint { margin: 0 0 18px; color: var(--muted); line-height: 1.5; }
-
-    .toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
-
-    .toolbar button,
-    .toolbar label,
-    .secondary {
-      min-height: 38px;
-      padding: 8px 12px;
-      border: 1px solid var(--line);
-      border-radius: 9px;
-      background: #151b23;
-      color: var(--text);
-    }
-
-    .toolbar label {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    #text {
-      min-height: 460px;
-      padding: 22px;
-      overflow: auto;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      background: var(--panel-2);
-      outline: none;
-      font-size: 20px;
-      line-height: 1.6;
-      white-space: pre-wrap;
-    }
-
-    #text:focus { border-color: var(--accent); }
-    #text:empty::before {
-      content: attr(data-placeholder);
-      color: #687180;
-    }
-
-    .bottom {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-top: 14px;
-    }
-
-    .launch {
-      border: 0;
-      border-radius: 10px;
-      padding: 14px 18px;
-      background: var(--accent);
-      color: #1a1207;
-      font-weight: 800;
-    }
-
-    .stage {
-      position: fixed;
-      inset: 0;
-      z-index: 100;
-      overflow: hidden;
-      background: #000;
-      color: #fff;
-    }
-
-    .stage[hidden] { display: none; }
-
-    .viewport {
-      position: absolute;
-      inset: 0;
-      overflow: hidden;
-    }
-
-    #prompt {
-      position: absolute;
-      left: 7%;
-      right: 7%;
-      top: 50%;
-      transform: translateY(calc(-50% - var(--offset, 0px)));
-      transform-origin: center;
-      text-align: center;
-      font-size: clamp(32px, 6vw, 110px);
-      font-weight: 700;
-      line-height: 1.25;
-      word-break: break-word;
-    }
-
-    #prompt p { margin: .45em 0; }
-    #prompt div { margin: .45em 0; }
-
-    .stage-bar {
-      position: absolute;
-      left: 50%;
-      bottom: 18px;
-      transform: translateX(-50%);
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 6px;
-      width: min(95vw, 760px);
-      padding: 8px;
-      border: 1px solid #ffffff22;
-      border-radius: 12px;
-      background: #151a20dd;
-      transition: opacity .2s;
-    }
-
-    .stage-bar button {
-      min-width: 44px;
-      height: 42px;
-      border: 1px solid #ffffff22;
-      border-radius: 8px;
-      background: #ffffff12;
-      color: #fff;
-    }
-
-    .stage-bar #play { background: var(--accent); color: #111; font-weight: 800; }
-
-    @media (max-width: 600px) {
-      .app { padding: 10px; }
-      .editor { padding: 15px; }
-      #text { min-height: 55vh; }
-      .bottom { align-items: stretch; flex-direction: column; }
-      .launch { width: 100%; }
-    }
+    :root{--bg:#090c11;--panel:#11161e;--panel2:#0b0f14;--line:#29313d;--text:#f3f5f7;--muted:#929baa;--accent:#f2ad42}
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Arial,sans-serif}
+    button,input{font:inherit}button{cursor:pointer}
+    .app{min-height:100vh;padding:20px}
+    .topbar,.editor{width:min(1100px,100%);margin:0 auto}
+    .topbar{min-height:58px;margin-bottom:20px;display:flex;align-items:center;gap:16px;padding:12px 16px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+    .brand{font-weight:800;letter-spacing:.08em}.brand span{color:var(--accent)}.status{margin-left:auto;color:var(--muted);font-size:13px}
+    .editor{padding:24px;border:1px solid var(--line);border-radius:18px;background:var(--panel)}
+    h1{margin:0 0 8px;font-size:28px}.hint{margin:0 0 18px;color:var(--muted);line-height:1.5}
+    .toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}.toolbar button,.toolbar label,.secondary{min-height:38px;padding:8px 12px;border:1px solid var(--line);border-radius:9px;background:#151b23;color:var(--text)}.toolbar label{display:inline-flex;align-items:center;gap:8px}
+    #text{min-height:460px;padding:22px;overflow:auto;border:1px solid var(--line);border-radius:12px;background:var(--panel2);outline:none;font-size:20px;line-height:1.6;white-space:pre-wrap}#text:focus{border-color:var(--accent)}#text:empty:before{content:attr(data-placeholder);color:#687180}
+    .bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px}.launch{border:0;border-radius:10px;padding:14px 18px;background:var(--accent);color:#1a1207;font-weight:800}
+    .stage{position:fixed;inset:0;z-index:100;overflow:hidden;background:#000;color:#fff}.stage[hidden]{display:none}.viewport{position:absolute;inset:0;overflow:hidden}
+    #prompt{position:absolute;left:7%;right:7%;top:50%;transform:translateY(calc(-50% - var(--offset,0px)));text-align:center;font-size:clamp(32px,6vw,110px);font-weight:700;line-height:1.25;word-break:break-word}#prompt p,#prompt div{margin:.45em 0}
+    .stage-bar{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);display:flex;flex-wrap:wrap;justify-content:center;gap:6px;width:min(95vw,760px);padding:8px;border:1px solid #ffffff22;border-radius:12px;background:#151a20dd}.stage-bar button{min-width:44px;height:42px;border:1px solid #ffffff22;border-radius:8px;background:#ffffff12;color:#fff}.stage-bar #play{background:var(--accent);color:#111;font-weight:800}
+    @media(max-width:600px){.app{padding:10px}.editor{padding:15px}#text{min-height:55vh}.bottom{align-items:stretch;flex-direction:column}.launch{width:100%}}
   </style>
 </head>
 <body>
   <main id="editorView" class="app">
-    <header class="topbar">
-      <div class="brand">PROMPTEUR <span>ÉCRAN</span></div>
-      <div class="status">Mode éditeur — rien n'est enregistré automatiquement</div>
-    </header>
-
+    <header class="topbar"><div class="brand">PROMPTEUR <span>ÉCRAN</span></div><div class="status">Éditeur — rien n'est enregistré</div></header>
     <section class="editor">
       <h1>Écrivez votre script</h1>
-      <p class="hint">Écrivez ou collez votre texte. Sélectionnez une partie du texte pour la mettre en gras, italique, soulignée ou en couleur.</p>
-
-      <div class="toolbar" id="toolbar">
+      <p class="hint">Écrivez ou collez votre texte. Sélectionnez une partie pour la mettre en gras, italique, soulignée ou en couleur.</p>
+      <div class="toolbar">
         <button type="button" data-command="bold"><b>Gras</b></button>
         <button type="button" data-command="italic"><i>Italique</i></button>
         <button type="button" data-command="underline"><u>Souligné</u></button>
         <label>Couleur <input id="textColor" type="color" value="#ffffff"></label>
         <button type="button" data-command="removeFormat">Effacer le style</button>
       </div>
-
       <div id="text" contenteditable="true" spellcheck="true" data-placeholder="Écrivez votre texte ici…"></div>
-
-      <div class="bottom">
-        <button id="clear" class="secondary" type="button">Effacer le texte</button>
-        <button id="launch" class="launch" type="button">▶ Terminer et lancer le prompteur</button>
-      </div>
+      <div class="bottom"><button id="clear" class="secondary" type="button">Effacer le texte</button><button id="launch" class="launch" type="button">▶ Terminer et lancer le prompteur</button></div>
     </section>
   </main>
 
   <section id="stage" class="stage" hidden>
-    <div class="viewport">
-      <div id="prompt"></div>
-    </div>
-
+    <div class="viewport"><div id="prompt"></div></div>
     <div class="stage-bar">
-      <button id="back" type="button">−</button>
-      <button id="play" type="button">▶</button>
-      <button id="forward" type="button">+</button>
-      <button id="slower" type="button">🐢</button>
-      <button id="faster" type="button">⚡</button>
-      <button id="restart" type="button">↺</button>
-      <button id="fullscreen" type="button">⛶</button>
-      <button id="exit" type="button">×</button>
+      <button id="back" type="button">−</button><button id="play" type="button">▶</button><button id="forward" type="button">+</button><button id="slower" type="button">🐢</button><button id="faster" type="button">⚡</button><button id="restart" type="button">↺</button><button id="fullscreen" type="button">⛶</button><button id="exit" type="button">×</button>
     </div>
   </section>
 
   <script>
-    (() => {
+    (()=>{
       'use strict';
+      const editor=document.getElementById('editorView');
+      const text=document.getElementById('text');
+      const stage=document.getElementById('stage');
+      const prompt=document.getElementById('prompt');
+      const playButton=document.getElementById('play');
+      let running=false;
+      let offset=0;
+      let speed=1;
+      let frame=null;
+      let last=0;
 
-      const editorView = document.getElementById('editorView');
-      const text = document.getElementById('text');
-      const stage = document.getElementById('stage');
-      const prompt = document.getElementById('prompt');
-      const launch = document.getElementById('launch');
-      const clear = document.getElementById('clear');
-      const playButton = document.getElementById('play');
-      const color = document.getElementById('textColor');
-
-      let running = false;
-      let offset = 0;
-      let speed = 1;
-      let animationFrame = null;
-      let lastTime = 0;
-
-      function render() {
-        prompt.innerHTML = text.innerHTML.trim();
-        prompt.style.setProperty('--offset', `${offset}px`);
+      function render(){
+        prompt.innerHTML=text.innerHTML.trim();
+        prompt.style.setProperty('--offset',`${offset}px`);
       }
 
-      function setRunning(value) {
-        running = value;
-        playButton.textContent = running ? 'Ⅱ' : '▶';
-
-        if (!running) {
-          if (animationFrame !== null) {
-            cancelAnimationFrame(animationFrame);
-            animationFrame = null;
-          }
-          return;
-        }
-
-        lastTime = performance.now();
-        animationFrame = requestAnimationFrame(tick);
+      function setRunning(value){
+        running=value;
+        playButton.textContent=running?'Ⅱ':'▶';
+        if(frame!==null){cancelAnimationFrame(frame);frame=null;}
+        if(running){last=performance.now();frame=requestAnimationFrame(tick);}
       }
 
-      function tick(now) {
-        if (!running) return;
-
-        const delta = Math.min(now - lastTime, 80);
-        lastTime = now;
-        offset += delta * 0.035 * speed;
-        prompt.style.setProperty('--offset', `${offset}px`);
-        animationFrame = requestAnimationFrame(tick);
+      function tick(now){
+        if(!running)return;
+        const delta=Math.min(now-last,80);
+        last=now;
+        offset+=delta*0.035*speed;
+        prompt.style.setProperty('--offset',`${offset}px`);
+        frame=requestAnimationFrame(tick);
       }
 
-      function openStage() {
-        if (!text.innerText.trim()) {
+      function launchPrompter(){
+        if(!text.innerText.trim()){
           alert('Écrivez d’abord votre texte.');
           text.focus();
           return;
         }
-
         setRunning(false);
-        offset = 0;
+        offset=0;
         render();
-        editorView.hidden = true;
-        stage.hidden = false;
-
-        // Le premier lancement est fait directement depuis le clic utilisateur.
-        // Cela évite que le navigateur bloque le plein écran.
-        if (stage.requestFullscreen) {
-          stage.requestFullscreen().catch(() => {});
-        }
-
+        editor.hidden=true;
+        stage.hidden=false;
+        if(stage.requestFullscreen)stage.requestFullscreen().catch(()=>{});
         setRunning(true);
       }
 
-      launch.addEventListener('click', openStage);
+      document.getElementById('launch').addEventListener('click',launchPrompter);
+      document.getElementById('clear').addEventListener('click',()=>{text.innerHTML='';text.focus();});
 
-      clear.addEventListener('click', () => {
-        text.innerHTML = '';
-        text.focus();
-      });
-
-      document.querySelectorAll('[data-command]').forEach((button) => {
-        button.addEventListener('mousedown', (event) => event.preventDefault());
-        button.addEventListener('click', () => {
+      document.querySelectorAll('[data-command]').forEach(button=>{
+        button.addEventListener('mousedown',event=>event.preventDefault());
+        button.addEventListener('click',()=>{
+          document.execCommand(button.dataset.command,false,null);
           text.focus();
-          document.execCommand(button.dataset.command, false, null);
-          render();
         });
       });
 
-      color.addEventListener('input', () => {
+      document.getElementById('textColor').addEventListener('input',event=>{
         text.focus();
-        document.execCommand('foreColor', false, color.value);
-        render();
+        document.execCommand('foreColor',false,event.target.value);
       });
 
-      playButton.addEventListener('click', () => setRunning(!running));
-
-      document.getElementById('back').addEventListener('click', () => {
-        offset = Math.max(0, offset - 180);
-        render();
-      });
-
-      document.getElementById('forward').addEventListener('click', () => {
-        offset += 180;
-        render();
-      });
-
-      document.getElementById('slower').addEventListener('click', () => {
-        speed = Math.max(0.2, speed - 0.1);
-      });
-
-      document.getElementById('faster').addEventListener('click', () => {
-        speed = Math.min(4, speed + 0.1);
-      });
-
-      document.getElementById('restart').addEventListener('click', () => {
-        offset = 0;
-        render();
+      document.getElementById('play').addEventListener('click',()=>setRunning(!running));
+      document.getElementById('back').addEventListener('click',()=>{offset=Math.max(0,offset-180);render();});
+      document.getElementById('forward').addEventListener('click',()=>{offset+=180;render();});
+      document.getElementById('slower').addEventListener('click',()=>{speed=Math.max(.2,speed-.1);});
+      document.getElementById('faster').addEventListener('click',()=>{speed=Math.min(4,speed+.1);});
+      document.getElementById('restart').addEventListener('click',()=>{offset=0;render();setRunning(false);});
+      document.getElementById('fullscreen').addEventListener('click',()=>{if(!document.fullscreenElement&&stage.requestFullscreen)stage.requestFullscreen().catch(()=>{});});
+      document.getElementById('exit').addEventListener('click',()=>{
         setRunning(false);
-      });
-
-      document.getElementById('fullscreen').addEventListener('click', () => {
-        if (!document.fullscreenElement && stage.requestFullscreen) {
-          stage.requestFullscreen().catch(() => {});
-        }
-      });
-
-      document.getElementById('exit').addEventListener('click', () => {
-        setRunning(false);
-        if (document.fullscreenElement) {
-          document.exitFullscreen().catch(() => {});
-        }
-        stage.hidden = true;
-        editorView.hidden = false;
+        if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});
+        stage.hidden=true;
+        editor.hidden=false;
         text.focus();
       });
 
-      window.addEventListener('keydown', (event) => {
-        if (stage.hidden) return;
-
-        if (event.key === ' ') {
-          event.preventDefault();
-          setRunning(!running);
-        } else if (event.key === 'ArrowLeft') {
-          offset = Math.max(0, offset - 180);
-          render();
-        } else if (event.key === 'ArrowRight') {
-          offset += 180;
-          render();
-        } else if (event.key.toLowerCase() === 'r') {
-          offset = 0;
-          render();
-          setRunning(false);
-        } else if (event.key === 'Escape') {
-          setRunning(false);
-        }
+      window.addEventListener('keydown',event=>{
+        if(stage.hidden)return;
+        if(event.key===' '){event.preventDefault();setRunning(!running);}
+        else if(event.key==='ArrowLeft'){offset=Math.max(0,offset-180);render();}
+        else if(event.key==='ArrowRight'){offset+=180;render();}
+        else if(event.key.toLowerCase()==='r'){offset=0;render();setRunning(false);}
+        else if(event.key==='Escape'){setRunning(false);}
       });
 
       render();
