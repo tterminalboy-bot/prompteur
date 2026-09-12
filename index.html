@@ -14,12 +14,16 @@
   <main class="landing-card">
     <div class="brand"><span class="brand-light"></span><span>PROMPTEUR</span><small>RÉGIE</small></div>
     <h1>Votre texte.<br><strong>Votre rythme.</strong></h1>
-    <p class="muted">Un prompteur statique, pilotable depuis votre téléphone, sans compte et sans serveur applicatif.</p>
+    <p class="muted">Créez votre script sur l'écran, puis pilotez le défilement depuis votre téléphone.</p>
     <div class="choice-grid">
       <a class="choice" href="prompter.html"><span class="choice-icon">▣</span><span><b>Écran prompteur</b><small>Ordinateur ou tablette</small></span><span>→</span></a>
       <a class="choice" href="remote.html"><span class="choice-icon">⌁</span><span><b>Télécommande</b><small>Téléphone ou tablette</small></span><span>→</span></a>
     </div>
     <div class="landing-foot"><span>100% navigateur</span><span>•</span><span>WebRTC</span><span>•</span><span>Compatible mobile</span></div>
   </main>
+  <script>
+    const mobile=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+    if(mobile && !new URLSearchParams(location.search).has('desktop')) location.replace('remote.html');
+  </script>
 </body>
 </html>
