@@ -1,12 +1,15 @@
 const input=qs('#codeInput');
 let code=new URLSearchParams(location.search).get('code')||localStorage.getItem('prompteur-code')||'';input.value=code;
 let peer=null,conn=null,retryTimer=null,connecting=false;
+let remoteSpeed=1;
 function connected(v){qs('#dot').classList.toggle('ok',v);qs('#connectionText').textContent=v?'Connecté':'Connexion…'}
 function retry(){clearTimeout(retryTimer);retryTimer=setTimeout(()=>{if(code&&!conn?.open)connect()},2500)}
 function resetConnection(){if(conn){try{conn.close()}catch{}}conn=null;if(peer){try{peer.destroy()}catch{}}peer=null}
+function updateSpeedUI(v){remoteSpeed=Math.max(.2,Math.min(4,+v));qs('#speedRange').value=remoteSpeed;qs('#speedValue').textContent=remoteSpeed.toFixed(1).replace('.',',')+'×'}
 function syncState(s){
   if(!s)return;
   qs('#play').firstChild.textContent=s.running?'Ⅱ':'▶';
+  if(s.speed!==undefined)updateSpeedUI(s.speed);
   if(s.bands!==undefined)qs('#remoteBands').classList.toggle('active',!!s.bands);
   if(s.arrows!==undefined)qs('#remoteArrows').classList.toggle('active',!!s.arrows);
   if(s.lineEnabled!==undefined)qs('#remoteLine').classList.toggle('active',!!s.lineEnabled);
@@ -31,16 +34,27 @@ function connect(){
 }
 function send(a){if(conn?.open)conn.send({type:'command',action:a});else toast('Télécommande non connectée')}
 function setting(key,value){if(conn?.open)conn.send({type:'setting',key,value});else toast('Télécommande non connectée')}
+function setRemoteSpeed(target){
+  const t=Math.max(.2,Math.min(4,Math.round(+target*10)/10));
+  let current=Math.max(.2,Math.min(4,Math.round(remoteSpeed*10)/10));
+  if(Math.abs(t-current)<.001){updateSpeedUI(t);return}
+  const action=t>current?'faster':'slower';
+  const steps=Math.round(Math.abs(t-current)*10);
+  for(let i=0;i<steps;i++)send(action);
+  updateSpeedUI(t);
+}
 qs('#connectBtn').onclick=connect;
 input.addEventListener('input',()=>{input.value=input.value.replace(/\D/g,'').slice(0,4)});input.addEventListener('keydown',e=>{if(e.key==='Enter')connect()});
-['play','back','forward','slower','faster','smaller','larger','restart'].forEach(id=>qs('#'+id).onclick=()=>send(id));
+['play','back','forward','smaller','larger','restart'].forEach(id=>qs('#'+id).onclick=()=>send(id));
 qs('#remoteBands').onclick=()=>setting('bands',!qs('#remoteBands').classList.contains('active'));
 qs('#remoteArrows').onclick=()=>setting('arrows',!qs('#remoteArrows').classList.contains('active'));
 qs('#remoteLine').onclick=()=>setting('lineEnabled',!qs('#remoteLine').classList.contains('active'));
+qs('#speedRange').oninput=e=>setRemoteSpeed(e.target.value);
 qs('#bandHeight').oninput=e=>{qs('#bandHeightValue').textContent=e.target.value+'%';setting('bandHeight',+e.target.value)};
 qs('#bandBlur').oninput=e=>{qs('#bandBlurValue').textContent=e.target.value+'%';setting('bandBlur',+e.target.value)};
 qs('#arrowSize').oninput=e=>{qs('#arrowSizeValue').textContent=e.target.value+'px';setting('arrowSize',+e.target.value)};
 qs('#lineSize').oninput=e=>{qs('#lineSizeValue').textContent=e.target.value+'px';setting('lineSize',+e.target.value)};
 qs('#fullscreen').onclick=()=>document.documentElement.requestFullscreen?.().catch(()=>{});
 qs('#disconnect').onclick=()=>{clearTimeout(retryTimer);resetConnection();qs('#controlView').hidden=true;qs('#connectView').hidden=false;connected(false)};
+updateSpeedUI(1);
 if(code.length===4)setTimeout(connect,300);
